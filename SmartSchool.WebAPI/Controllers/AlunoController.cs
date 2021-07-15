@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using SmartSchool.WebAPI.Data;
 using SmartSchool.WebAPI.Models;
 
 namespace SmartSchool.WebAPI.Controllers
@@ -9,62 +11,90 @@ namespace SmartSchool.WebAPI.Controllers
     [Route("api/[controller]")]
     public class AlunoController : ControllerBase
     {
-        public List<Aluno> Alunos = new List<Aluno>(){
-            new Aluno(){
-                Id=1,
-                Nome="sassa",
-                SobreNome="Fernandes",
-                Telefone="123456"                
-            },
-            new Aluno(){
-                Id=2,
-                Nome="João",
-                SobreNome="Calado",
-                Telefone="3554534"                
-            },
-            new Aluno(){
-                Id=3,
-                Nome="William",
-                SobreNome="Mattos",
-                Telefone="32231"                
-            },
-            new Aluno(){
-                Id=4,
-                Nome="Lucas",
-                SobreNome="Stange",
-                Telefone="5353324"                
-            },
-        };
+        private readonly SmartContext smartContext;
 
-        public AlunoController()
+        public AlunoController(SmartContext smartContext)
         {
-
+            this.smartContext = smartContext;
         }
-        
+
 
         [HttpGet]
-        public IActionResult Get(){
-            return Ok(Alunos);
+        public IActionResult Get()
+        {
+            return Ok(smartContext.Alunos);
         }
 
         [HttpGet("{Id:int}")]
-        public IActionResult GetById(int Id){
+        public IActionResult GetById(int Id)
+        {
 
-            var aluno = Alunos.Where(x=>x.Id==Id).FirstOrDefault();
-            if(aluno == null)   
-                return BadRequest("Nenhum aluno encontrado com o Id: "+Id);
-                
+            var aluno = smartContext.Alunos.Where(x => x.Id == Id).FirstOrDefault();
+            if (aluno == null)
+                return BadRequest("Nenhum aluno encontrado com o Id: " + Id);
+
             return Ok(aluno);
         }
 
         [HttpGet("{Name}")]
-        public IActionResult GetByName(string Name){
+        public IActionResult GetByName(string Name)
+        {
 
-            var aluno = Alunos.Where(x=>x.Nome.Contains(Name)).FirstOrDefault();
-            if(aluno == null)   
-                return BadRequest("Nenhum aluno encontrado com o nome: "+Name);
-                
+            var aluno = smartContext.Alunos.Where(x => x.Nome.Contains(Name)).FirstOrDefault();
+            if (aluno == null)
+                return BadRequest("Nenhum aluno encontrado com o nome: " + Name);
+
             return Ok(aluno);
         }
+
+        [HttpPost]
+        public IActionResult Post(Aluno aluno)
+        {
+            smartContext.Alunos.Add(aluno);
+            smartContext.SaveChanges();
+
+            return Ok(smartContext.Alunos);
+        }
+
+        [HttpPut]
+        public IActionResult Put(Aluno aluno)
+        {
+            var alunoDB = smartContext.Alunos.AsNoTracking().FirstOrDefault(x => x.Id == aluno.Id);
+            if (alunoDB == null)
+                return BadRequest("Aluno não encontrado");
+
+            smartContext.Update(aluno);
+            smartContext.SaveChanges();
+
+            return Ok(smartContext.Alunos);
+        }
+
+        [HttpPatch]
+        public IActionResult Patch(Aluno aluno)
+        {
+            var alunoDB = smartContext.Alunos.AsNoTracking().FirstOrDefault(x => x.Id == aluno.Id);
+            if (alunoDB == null)
+                return BadRequest("Aluno não encontrado");
+
+            smartContext.Update(aluno);
+            smartContext.SaveChanges();
+
+            return Ok(smartContext.Alunos);
+        }
+
+        [HttpDelete]
+        public IActionResult Delete(Aluno aluno)
+        {
+            var alunoDB = smartContext.Alunos.FirstOrDefault(x => x.Id == aluno.Id);
+            if (alunoDB == null)
+                return BadRequest("Aluno não encontrado");
+
+            smartContext.Remove(alunoDB);
+            smartContext.SaveChanges();
+
+            return Ok(smartContext.Alunos);
+        }
+
+
     }
 }
