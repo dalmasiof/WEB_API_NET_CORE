@@ -31,6 +31,18 @@ namespace SmartSchool.WebAPI
             services.AddDbContext<SmartContext>(
                 context=>context.UseSqlite(Configuration.GetConnectionString("Default"))
             );
+
+            //services.AddSingleton<IRepository,Repository>();
+            //Cria uma instancia para cada requisição e a reutiliza em varios locais podendo trazer varios problemas
+
+            //services.AddTransient<IRepository,Repository>();
+            //Sempre criando novas instancia e nunca reutilizando
+
+            services.AddScoped<IRepository,Repository>();
+            //Reutiliza instancia caso haja dependencia, caso contrario cria outra. Usado prlo prof, recomendadado
+
+
+
             services.AddControllers();
         }
 

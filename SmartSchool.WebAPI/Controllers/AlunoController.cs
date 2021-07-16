@@ -12,9 +12,11 @@ namespace SmartSchool.WebAPI.Controllers
     public class AlunoController : ControllerBase
     {
         private readonly SmartContext smartContext;
+        private readonly IRepository repository;
 
-        public AlunoController(SmartContext smartContext)
+        public AlunoController(SmartContext smartContext, IRepository repository)
         {
+            this.repository = repository;
             this.smartContext = smartContext;
         }
 
@@ -50,10 +52,16 @@ namespace SmartSchool.WebAPI.Controllers
         [HttpPost]
         public IActionResult Post(Aluno aluno)
         {
-            smartContext.Alunos.Add(aluno);
-            smartContext.SaveChanges();
+            repository.Add(aluno);
+            if(repository.SaveChanges()){
+                 return Ok(smartContext.Alunos);
 
-            return Ok(smartContext.Alunos);
+            }
+            else{
+                return BadRequest("Erro ao inserir valor");
+            }
+            
+
         }
 
         [HttpPut]
@@ -89,10 +97,14 @@ namespace SmartSchool.WebAPI.Controllers
             if (alunoDB == null)
                 return BadRequest("Aluno não encontrado");
 
-            smartContext.Remove(alunoDB);
-            smartContext.SaveChanges();
+             repository.Delete(aluno);
+            if(repository.SaveChanges()){
+                 return Ok(smartContext.Alunos);
 
-            return Ok(smartContext.Alunos);
+            }
+            else{
+                return BadRequest("Erro ao inserir valor");
+            }
         }
 
 
