@@ -29,52 +29,79 @@ namespace SmartSchool.WebAPI.Data
 
             if (incluiDisciplina)
             {
-                query.Include(x => x.AlunosDisciplinas)
-                .ThenInclude(Add => Add.Disciplina)
-                .ThenInclude(Professor => Professor.Professor);
+                query = query.Include(a => a.AlunosDisciplinas)
+                                .ThenInclude(ad => ad.Disciplina)
+                                .ThenInclude(d => d.Professor);
             }
             query = query.AsNoTracking().OrderBy(x => x.Id);
             return query.ToArray();
         }
 
+        public Aluno[] GetByIdAluno(int IdAluno, bool incluiDisciplina = false)
+        {
+            IQueryable<Aluno> query = this.smartContext.Alunos.Where(x=>x.Id == IdAluno);
+
+            if (incluiDisciplina)
+            {
+                query = query.Include(a => a.AlunosDisciplinas)
+                                .ThenInclude(ad => ad.Disciplina)
+                                .ThenInclude(d => d.Professor);
+            }
+            query = query.AsNoTracking().OrderBy(x => x.Id);
+            return query.ToArray();
+        }
         public Professor[] GetAllProfessor(bool incluiDisciplina)
         {
-            throw new System.NotImplementedException();
+            IQueryable<Professor> query = this.smartContext.Professor;
+
+            if (incluiDisciplina)
+            {
+                query = query.Include(x => x.Disciplinas)
+                .ThenInclude(Add => Add.AlunosDisciplinas)
+                .ThenInclude(Aluno => Aluno.Aluno);
+            }
+            query = query.AsNoTracking().OrderBy(x => x.Id);
+            return query.ToArray();
         }
 
         public Aluno[] GetByDisciplinaIdAlunos(int Id, bool includeProfessor = false)
         {
             IQueryable<Aluno> query = this.smartContext.Alunos;
 
-            if(includeProfessor){
-                query = query.Include(x=>x.AlunosDisciplinas)
-                .ThenInclude(y=>y.Disciplina)
-                .ThenInclude(z=>z.Professor);
+            if (includeProfessor)
+            {
+                query = query.Include(x => x.AlunosDisciplinas)
+                .ThenInclude(y => y.Disciplina)
+                .ThenInclude(z => z.Professor);
             }
 
             query = query.AsNoTracking()
-            .OrderBy(x=>x.Id)
-            .Where(aluno=>aluno.AlunosDisciplinas.Any(ad=>ad.DisciplinaId == Id));
+            .OrderBy(x => x.Id)
+            .Where(aluno => aluno.AlunosDisciplinas.Any(ad => ad.DisciplinaId == Id));
 
 
             query = query.AsNoTracking().OrderBy(x => x.Id);
             return query.ToArray();
         }
 
-        public Professor[] GetByDisciplinaIdProfessor(int Id)
+        public Professor[] GetByDisciplinaIdProfessor(int Id, bool includeAluno)
         {
-            throw new System.NotImplementedException();
-        }
+            IQueryable<Professor> query = this.smartContext.Professor;
 
-        public Aluno GetByIdAlunos(int Id)
-        {
-            IQueryable<Aluno> query = this.smartContext.Alunos;
+            if (includeAluno)
+            {
+                query = query.Include(x => x.Disciplinas)
+                .ThenInclude(y => y.AlunosDisciplinas)
+                .ThenInclude(z => z.Aluno);
+            }
 
-            
             query = query.AsNoTracking()
-            .Where(x=>x.Id == Id);
+            .OrderBy(x => x.Id)
+            .Where(profe => profe.Disciplinas.Any(ad => ad.Id == Id));
 
-            return query.FirstOrDefault();
+
+            query = query.AsNoTracking().OrderBy(x => x.Id);
+            return query.ToArray();
         }
 
         public Professor GetByIdProfessor(int Id)

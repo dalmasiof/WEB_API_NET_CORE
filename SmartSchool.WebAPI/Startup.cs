@@ -43,7 +43,10 @@ namespace SmartSchool.WebAPI
 
 
 
-            services.AddControllers();
+            services.AddControllers()
+            .AddNewtonsoftJson(op=>
+            op.SerializerSettings.ReferenceLoopHandling = 
+            Newtonsoft.Json.ReferenceLoopHandling.Ignore);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

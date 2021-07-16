@@ -16,10 +16,9 @@ namespace SmartSchool.WebAPI.Data
 
         Aluno[] GetAllAlunos(bool incluiDisciplina);
         Aluno[] GetByDisciplinaIdAlunos(int Id, bool includeProfessor);
-        Aluno GetByIdAlunos(int Id);
-
+        Aluno[] GetByIdAluno(int IdAluno, bool incluiDisciplina = false);
         Professor[] GetAllProfessor(bool incluiDisciplina);
-        Professor[] GetByDisciplinaIdProfessor(int Id);
+        Professor[] GetByDisciplinaIdProfessor(int Id,bool includeAluno);
         Professor GetByIdProfessor(int Id);
 
 
