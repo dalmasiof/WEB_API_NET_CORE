@@ -1,7 +1,10 @@
+using System.Collections.Generic;
 using System.Linq;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartSchool.WebAPI.Data;
+using SmartSchool.WebAPI.DTO;
 using SmartSchool.WebAPI.Models;
 
 namespace SmartSchool.WebAPI.Controllers
@@ -11,78 +14,111 @@ namespace SmartSchool.WebAPI.Controllers
     public class ProfessorController : ControllerBase
     {
         private readonly IRepository repository;
-        public ProfessorController(IRepository repository)
+        private readonly IMapper mapper;
+
+        public ProfessorController(IRepository repository, IMapper mapper)
         {
             this.repository = repository;
+            this.mapper = mapper;
+
         }
 
 
         [HttpGet]
         public IActionResult Get()
         {
-            return Ok(repository.GetAllProfessor(true));
+            var Profs = repository.GetAllProfessor(false);
+
+            return Ok(mapper.Map<IEnumerable<Professor>>(Profs));
         }
 
         [HttpGet("{Id:int}")]
         public IActionResult GetById(int Id)
         {
 
-            var Professor = repository.GetByIdProfessor(Id);
+            var Professor = repository.GetByIdProfessor(Id,false);
             if (Professor == null)
                 return BadRequest("Nenhum Professor encontrado com o Id: " + Id);
 
-            return Ok(Professor);
+            return Ok(mapper.Map<ProfessorDTO>(Professor));
         }
 
 
 
         [HttpPost]
-        public IActionResult Post(Professor Professor)
+        public IActionResult Post(ProfessorDTO ProfessorDTO)
         {
-            repository.Add(Professor);
-            repository.SaveChanges();
+            var ProfessorBD = mapper.Map<Professor>(ProfessorDTO);
+            repository.Add(ProfessorBD);
+            if (repository.SaveChanges())
+            {
+                return Created($"/api/professor/{ProfessorBD.Id}", mapper.Map<ProfessorDTO>(ProfessorBD));
 
-            return Ok(repository.GetAllProfessor(false));
+            }
+            else
+            {
+                return BadRequest("Erro ao inserir valor");
+            }
         }
 
         [HttpPut]
-        public IActionResult Put(Professor Professor)
+        public IActionResult Put(ProfessorDTO Professor)
         {
-            var ProfessorDB = repository.GetByIdProfessor(Professor.Id);
+            var ProfessorDB = repository.GetByIdProfessor(Professor.Id,false);
             if (ProfessorDB == null)
                 return BadRequest("Professor não encontrado");
 
-            repository.Update(Professor);
-            repository.SaveChanges();
+            ProfessorDB = mapper.Map<Professor>(Professor);
+            repository.Update(ProfessorDB);
+            if (repository.SaveChanges())
+            {
+                return Created($"/api/professor/{ProfessorDB.Id}", mapper.Map<ProfessorDTO>(ProfessorDB));
 
-            return Ok(repository.GetAllProfessor(false));
+            }
+            else
+            {
+                return BadRequest("Erro ao inserir valor");
+            }
         }
 
         [HttpPatch]
-        public IActionResult Patch(Professor Professor)
+        public IActionResult Patch(ProfessorDTO Professor)
         {
-            var ProfessorDB = repository.GetByIdProfessor(Professor.Id);
+            var ProfessorDB = repository.GetByIdProfessor(Professor.Id,false);
             if (ProfessorDB == null)
                 return BadRequest("Professor não encontrado");
 
-            repository.Update(Professor);
-            repository.SaveChanges();
+            ProfessorDB = mapper.Map<Professor>(Professor);
+            repository.Update(ProfessorDB);
+            if (repository.SaveChanges())
+            {
+                return Created($"/api/professor/{ProfessorDB.Id}", mapper.Map<ProfessorDTO>(ProfessorDB));
 
-            return Ok(repository.GetAllProfessor(false));
+            }
+            else
+            {
+                return BadRequest("Erro ao inserir valor");
+            }
         }
 
         [HttpDelete("{Id}")]
         public IActionResult Delete(int Id)
         {
-             var ProfessorDB = repository.GetByIdProfessor(Id);
+            var ProfessorDB = repository.GetByIdProfessor(Id,false);
             if (ProfessorDB == null)
                 return BadRequest("Professor não encontrado");
 
 
             repository.Delete(ProfessorDB);
-            repository.SaveChanges();
-
-            return Ok(repository.GetAllProfessor(false));
+           if (repository.SaveChanges())
+            {
+                var ProfessorDto = mapper.Map<Professor[],ProfessorDTO[]>(repository.GetAllProfessor(false));
+                return Ok(ProfessorDto);
+            }
+            else
+            {
+                return BadRequest("Erro ao inserir valor");
+            }
         }
     }
 }

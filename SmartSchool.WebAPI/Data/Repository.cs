@@ -39,7 +39,7 @@ namespace SmartSchool.WebAPI.Data
 
         public Aluno[] GetByIdAluno(int IdAluno, bool incluiDisciplina = false)
         {
-            IQueryable<Aluno> query = this.smartContext.Alunos.Where(x=>x.Id == IdAluno);
+            IQueryable<Aluno> query = this.smartContext.Alunos.Where(x => x.Id == IdAluno);
 
             if (incluiDisciplina)
             {
@@ -104,9 +104,21 @@ namespace SmartSchool.WebAPI.Data
             return query.ToArray();
         }
 
-        public Professor GetByIdProfessor(int Id)
+        public Professor GetByIdProfessor(int Id, bool includeAluno)
         {
-            throw new System.NotImplementedException();
+
+            IQueryable<Professor> query = 
+            this.smartContext.Professor.Where(x => x.Id == Id);
+
+           
+            if (includeAluno)
+            {
+                query = query.Include(x => x.Disciplinas)
+                .ThenInclude(y => y.AlunosDisciplinas)
+                .ThenInclude(z => z.Aluno);
+            }
+            query = query.AsNoTracking().OrderBy(x => x.Id);
+            return query.FirstOrDefault();
         }
 
         public bool SaveChanges()

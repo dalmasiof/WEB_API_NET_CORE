@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartSchool.WebAPI.Data;
@@ -12,18 +13,20 @@ namespace SmartSchool.WebAPI.Controllers
     public class AlunoController : ControllerBase
     {
         private readonly IRepository repository;
+        private readonly IMapper mapper;
 
-        public AlunoController( IRepository repository)
+        public AlunoController(IRepository repository, IMapper mapper)
         {
             this.repository = repository;
+            this.mapper = mapper;
         }
 
 
         [HttpGet]
         public IActionResult Get()
         {
-            var t = repository.GetAllAlunos(true);
-            return Ok(t);
+            var Alunos = repository.GetAllAlunos(false);
+            return Ok(mapper.Map<IEnumerable<AlunoDTO>>(Alunos));
         }
 
         [HttpGet("{Id:int}")]
@@ -37,63 +40,73 @@ namespace SmartSchool.WebAPI.Controllers
             return Ok(aluno);
         }
 
-      
-     
+
+
 
         [HttpPost]
-        public IActionResult Post(Aluno aluno)
+        public IActionResult Post(AlunoDTO aluno)
         {
-            repository.Add(aluno);
-            if(repository.SaveChanges()){
-                 return Ok(repository.GetAllAlunos(false));
+            var alunoMOdel = mapper.Map<Aluno>(aluno);
 
+            repository.Add(alunoMOdel);
+            if (repository.SaveChanges())
+            {
+                return Created($"/api/aluno/{aluno.Id}", mapper.Map<AlunoDTO>(alunoMOdel));
             }
-            else{
+            else
+            {
                 return BadRequest("Erro ao inserir valor");
             }
-            
+
 
         }
 
         [HttpPut]
-        public IActionResult Put(Aluno aluno)
+        public IActionResult Put(AlunoDTO aluno)
         {
-            var alunoDB = repository.GetAllAlunos(false).FirstOrDefault(x => x.Id == aluno.Id);
+            Aluno alunoDB = repository.GetByIdAluno(aluno.Id).FirstOrDefault();
+
             if (alunoDB == null)
                 return BadRequest("Aluno não encontrado");
 
-            repository.Update(aluno);
+            alunoDB = mapper.Map(aluno, alunoDB);
+            repository.Update(alunoDB);
             repository.SaveChanges();
 
-            return Ok(repository.GetAllAlunos(false));
+            return Created($"/api/aluno/{aluno.Id}", mapper.Map<AlunoDTO>(aluno));
         }
 
         [HttpPatch]
         public IActionResult Patch(Aluno aluno)
         {
-            var alunoDB = repository.GetAllAlunos(false).FirstOrDefault(x => x.Id == aluno.Id);
+           var alunoDB = repository.GetByIdAluno(aluno.Id);
+
             if (alunoDB == null)
                 return BadRequest("Aluno não encontrado");
 
+            mapper.Map(aluno, alunoDB);
             repository.Update(aluno);
             repository.SaveChanges();
 
-            return Ok(repository.GetAllAlunos(false));
+            return Created($"/api/aluno/{aluno.Id}", mapper.Map<AlunoDTO>(aluno));
         }
 
-        [HttpDelete]
-        public IActionResult Delete(Aluno aluno)
+        [HttpDelete("{Id}")]
+        public IActionResult Delete(int Id)
         {
-            var alunoDB =repository.GetByIdAluno(aluno.Id).FirstOrDefault();
+            var alunoDB = repository.GetByIdAluno(Id).FirstOrDefault();
             if (alunoDB == null)
                 return BadRequest("Aluno não encontrado");
 
-             repository.Delete(aluno);
-            if(repository.SaveChanges()){
-            return Ok(repository.GetAllAlunos(false));
+            repository.Delete(alunoDB);
+            if (repository.SaveChanges())
+            {
+                var alunosDTO = mapper.Map<Aluno[],AlunoDTO[]>(repository.GetAllAlunos(false));
+                return Ok(alunosDTO);
 
             }
-            else{
+            else
+            {
                 return BadRequest("Erro ao inserir valor");
             }
         }

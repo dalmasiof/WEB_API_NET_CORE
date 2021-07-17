@@ -12,7 +12,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using SmartSchool.WebAPI.Data;
 using Microsoft.EntityFrameworkCore;
-
+using AutoMapper;
 
 namespace SmartSchool.WebAPI
 {
@@ -41,6 +41,7 @@ namespace SmartSchool.WebAPI
             services.AddScoped<IRepository,Repository>();
             //Reutiliza instancia caso haja dependencia, caso contrario cria outra. Usado prlo prof, recomendadado
 
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 
             services.AddControllers()
