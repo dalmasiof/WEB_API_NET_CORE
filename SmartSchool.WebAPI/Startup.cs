@@ -13,6 +13,8 @@ using Microsoft.Extensions.Logging;
 using SmartSchool.WebAPI.Data;
 using Microsoft.EntityFrameworkCore;
 using AutoMapper;
+using System.Reflection;
+using System.IO;
 
 namespace SmartSchool.WebAPI
 {
@@ -29,7 +31,7 @@ namespace SmartSchool.WebAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<SmartContext>(
-                context=>context.UseSqlite(Configuration.GetConnectionString("Default"))
+                context => context.UseSqlite(Configuration.GetConnectionString("Default"))
             );
 
             //services.AddSingleton<IRepository,Repository>();
@@ -38,15 +40,28 @@ namespace SmartSchool.WebAPI
             //services.AddTransient<IRepository,Repository>();
             //Sempre criando novas instancia e nunca reutilizando
 
-            services.AddScoped<IRepository,Repository>();
+            services.AddScoped<IRepository, Repository>();
             //Reutiliza instancia caso haja dependencia, caso contrario cria outra. Usado prlo prof, recomendadado
 
+                services.AddSwaggerGen(opt =>
+                {
+                    opt.SwaggerDoc
+                ("smartschoolapi", new Microsoft.OpenApi.Models.OpenApiInfo()
+                    {
+                        Title = "SmarSchool API",
+                        Version = "1.0"
+                    });
+
+                }
+
+            );
             services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 
 
+
             services.AddControllers()
-            .AddNewtonsoftJson(op=>
-            op.SerializerSettings.ReferenceLoopHandling = 
+            .AddNewtonsoftJson(op =>
+            op.SerializerSettings.ReferenceLoopHandling =
             Newtonsoft.Json.ReferenceLoopHandling.Ignore);
         }
 
@@ -61,7 +76,11 @@ namespace SmartSchool.WebAPI
             // app.UseHttpsRedirection();
 
             app.UseRouting();
-
+            app.UseSwagger();
+            app.UseSwaggerUI(
+                opt => opt.SwaggerEndpoint("/swagger/smartschoolapi/swagger.json",
+                "smartschoolapi")
+            );
             // app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

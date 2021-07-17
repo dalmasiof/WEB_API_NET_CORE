@@ -8,20 +8,30 @@ using SmartSchool.WebAPI.Models;
 
 namespace SmartSchool.WebAPI.Controllers
 {
+    /// <sumary>
+    ///sas
+    /// </sumary>
+    /// <returns></returns>
     [ApiController]
     [Route("api/[controller]")]
     public class AlunoController : ControllerBase
     {
         private readonly IRepository repository;
         private readonly IMapper mapper;
-
+        ///<sumary>
+        ///ddddd
+        ///</sumary>
+        ///<returns></returns>
         public AlunoController(IRepository repository, IMapper mapper)
         {
             this.repository = repository;
             this.mapper = mapper;
         }
 
-
+        ///<sumary>
+        ///ddMetodo Retorna todos alunos
+        ///</sumary>
+        ///<returns></returns>
         [HttpGet]
         public IActionResult Get()
         {
@@ -79,7 +89,7 @@ namespace SmartSchool.WebAPI.Controllers
         [HttpPatch]
         public IActionResult Patch(Aluno aluno)
         {
-           var alunoDB = repository.GetByIdAluno(aluno.Id);
+            var alunoDB = repository.GetByIdAluno(aluno.Id);
 
             if (alunoDB == null)
                 return BadRequest("Aluno não encontrado");
@@ -101,7 +111,7 @@ namespace SmartSchool.WebAPI.Controllers
             repository.Delete(alunoDB);
             if (repository.SaveChanges())
             {
-                var alunosDTO = mapper.Map<Aluno[],AlunoDTO[]>(repository.GetAllAlunos(false));
+                var alunosDTO = mapper.Map<Aluno[], AlunoDTO[]>(repository.GetAllAlunos(false));
                 return Ok(alunosDTO);
 
             }
