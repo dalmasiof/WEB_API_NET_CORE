@@ -1,6 +1,9 @@
 using System.Linq;
 using SmartSchool.WebAPI.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using SmartSchool.WebAPI.Helper;
 
 namespace SmartSchool.WebAPI.Data
 {
@@ -107,10 +110,10 @@ namespace SmartSchool.WebAPI.Data
         public Professor GetByIdProfessor(int Id, bool includeAluno)
         {
 
-            IQueryable<Professor> query = 
+            IQueryable<Professor> query =
             this.smartContext.Professor.Where(x => x.Id == Id);
 
-           
+
             if (includeAluno)
             {
                 query = query.Include(x => x.Disciplinas)
@@ -129,6 +132,37 @@ namespace SmartSchool.WebAPI.Data
         public void Update<T>(T entity) where T : class
         {
             this.smartContext.Update(entity);
+        }
+
+        public async Task<PageList<Aluno>> GetAllAlunosAsync(
+            PageParams pageParams,bool incluiDisciplina)
+        {
+            IQueryable<Aluno> query = this.smartContext.Alunos;
+
+            if (incluiDisciplina)
+            {
+                query = query.Include(a => a.AlunosDisciplinas)
+                                .ThenInclude(ad => ad.Disciplina)
+                                .ThenInclude(d => d.Professor);
+            }
+            query = query.AsNoTracking().OrderBy(x => x.Id);
+
+            if (!string.IsNullOrEmpty(pageParams.Nome))
+                query = query.Where(aluno => aluno.Nome
+                                                  .ToUpper()
+                                                  .Contains(pageParams.Nome.ToUpper()) ||
+                                             aluno.SobreNome
+                                                  .ToUpper()
+                                                  .Contains(pageParams.Nome.ToUpper()));
+
+            if (pageParams.Matricula > 0)
+                query = query.Where(aluno => aluno.Matricula == pageParams.Matricula);
+            
+            if (pageParams.Ativo != null)
+                query = query.Where(aluno => aluno.Ativo == (pageParams.Ativo != 0));
+
+            //return await query.ToListAsync();
+            return await PageList<Aluno>.CreateAsync(query,pageParams.pageNumber,pageParams.PageSize);
         }
     }
 }

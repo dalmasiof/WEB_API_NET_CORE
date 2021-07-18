@@ -1,9 +1,11 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using SmartSchool.WebAPI.Data;
+using SmartSchool.WebAPI.Helper;
 using SmartSchool.WebAPI.Models;
 
 namespace SmartSchool.WebAPI.Controllers
@@ -33,10 +35,15 @@ namespace SmartSchool.WebAPI.Controllers
         ///</sumary>
         ///<returns></returns>
         [HttpGet]
-        public IActionResult Get()
+        public async Task<IActionResult> Get([FromQuery]PageParams pageParams)
         {
-            var Alunos = repository.GetAllAlunos(false);
-            return Ok(mapper.Map<IEnumerable<AlunoDTO>>(Alunos));
+            var Alunos = await repository.GetAllAlunosAsync(pageParams,false);
+
+            var alunosResult = mapper.Map<IEnumerable<AlunoDTO>>(Alunos);
+
+            Response.addPagination(Alunos.CurrentPage, Alunos.PageSize, Alunos.TotalCount,Alunos.TotalPages);
+
+            return Ok(alunosResult);
         }
 
         [HttpGet("{Id:int}")]

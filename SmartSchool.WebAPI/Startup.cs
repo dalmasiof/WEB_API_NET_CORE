@@ -46,7 +46,7 @@ namespace SmartSchool.WebAPI
                 services.AddSwaggerGen(opt =>
                 {
                     opt.SwaggerDoc
-                ("smartschoolapi", new Microsoft.OpenApi.Models.OpenApiInfo()
+                    ("smartschoolapi", new Microsoft.OpenApi.Models.OpenApiInfo()
                     {
                         Title = "SmarSchool API",
                         Version = "1.0"
